@@ -3,6 +3,9 @@
 Language Features:
 
 
+Important Bugfixes:
+* Code Generator: Fix inconsistent handling of storage arrays at the slot overflow boundary, which could lead to incorrect storage cleanup when using `delete` or partial assignments of arrays.
+
 Compiler Features:
 * NatSpec: Capture Natspec documentation of `enum` values in the AST.
 
