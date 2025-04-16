@@ -285,6 +285,8 @@ void ReferencesResolver::operator()(yul::FunctionDefinition const& _function)
 
 void ReferencesResolver::operator()(yul::Identifier const& _identifier)
 {
+	solAssert(m_yulLabels);
+	solAssert(m_yulAnnotation);
 	solAssert(nativeLocationOf(_identifier) == originLocationOf(_identifier), "");
 
 	if (m_resolver.experimentalSolidity())
@@ -392,6 +394,7 @@ void ReferencesResolver::operator()(yul::Identifier const& _identifier)
 
 void ReferencesResolver::operator()(yul::VariableDeclaration const& _varDecl)
 {
+	solAssert(m_yulLabels);
 	for (auto const& identifier: _varDecl.variables)
 	{
 		solAssert(nativeLocationOf(identifier) == originLocationOf(identifier), "");
@@ -491,6 +494,7 @@ void ReferencesResolver::resolveInheritDoc(StructuredDocumentation const& _docum
 
 void ReferencesResolver::validateYulIdentifierName(yul::YulName _name, SourceLocation const& _location)
 {
+	solAssert(m_yulLabels);
 	std::string_view const label = (*m_yulLabels)[_name];
 	if (util::contains(label, '.'))
 		m_errorReporter.declarationError(
