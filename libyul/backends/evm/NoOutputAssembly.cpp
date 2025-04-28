@@ -26,6 +26,7 @@
 
 #include <libevmasm/Instruction.h>
 
+#include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/iota.hpp>
 
 using namespace solidity;
@@ -228,19 +229,10 @@ NoOutputEVMDialect::NoOutputEVMDialect(EVMDialect const& _copyFrom):
 	{
 		std::vector<BuiltinFunctionForEVM const*> result;
 		result.reserve(m_functions.size());
-		for (auto const* builtinFunction: m_functions)
+		for (auto const& [index, builtinFunction]: m_functions | ranges::views::enumerate)
 		{
 			if (builtinFunction)
-			{
-				auto it = noOutputBuiltins.find(builtinFunction);
-				if (it == noOutputBuiltins.end())
-				{
-					auto noOutputFunction = *builtinFunction;
-					modifyBuiltinToNoOutput(noOutputFunction);
-					it = noOutputBuiltins.emplace(builtinFunction, std::move(noOutputFunction)).first;
-				}
-				result.emplace_back(&it->second);
-			}
+				result.emplace_back(&noOutputBuiltins[index]);
 			else
 				result.emplace_back(nullptr);
 		}
