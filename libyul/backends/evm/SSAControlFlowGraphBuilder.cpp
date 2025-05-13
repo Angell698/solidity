@@ -275,8 +275,8 @@ void SSAControlFlowGraphBuilder::operator()(VariableDeclaration const& _variable
 {
 	// if we have no value (like in `let a` without right-hand side), we can just skip this. the variable(s) will be
 	// added when first needed
-	if (!_variableDeclaration.value)
-		return;
+	//if (!_variableDeclaration.value)
+	//	return;
 
 	assign(
 		_variableDeclaration.variables | ranges::views::transform([&](auto& _var) { return std::ref(lookupVariable(_var.name)); }) | ranges::to<std::vector>,
