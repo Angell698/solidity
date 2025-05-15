@@ -2910,9 +2910,11 @@ void IRGeneratorForStatements::assignInternalFunctionIDIfNotCalledDirectly(
 	if (_expression.annotation().calledDirectly)
 		return;
 
-	define(IRVariable(_expression).part("functionIdentifier")) <<
-		std::to_string(m_context.mostDerivedContract().annotation().internalFunctionIDs.at(&_referencedFunction)) <<
-		"\n";
+	auto const it = m_context.mostDerivedContract().annotation().internalFunctionIDs.find(&_referencedFunction);
+	if (it == m_context.mostDerivedContract().annotation().internalFunctionIDs.end())
+		return;
+
+	define(IRVariable(_expression).part("functionIdentifier")) << std::to_string(it->second) << '\n';
 	m_context.addToInternalDispatch(_referencedFunction);
 }
 
