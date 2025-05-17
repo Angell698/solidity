@@ -27,6 +27,8 @@
 #include <libsolidity/ast/TypeProvider.h>
 #include <liblangutil/ErrorReporter.h>
 
+#include <range/v3/algorithm/find_if.hpp>
+
 #include <limits>
 
 using namespace solidity;
@@ -406,4 +408,25 @@ void ConstantEvaluator::endVisit(TupleExpression const& _tuple)
 {
 	if (!_tuple.isInlineArray() && _tuple.components().size() == 1)
 		m_values[&_tuple] = evaluate(*_tuple.components().front());
+}
+
+void ConstantEvaluator::endVisit(MemberAccess const& _memberAcess)
+{
+	if (auto const* parentIdentifier = dynamic_cast<Identifier const*>(&_memberAcess.expression()))
+	{
+		if (auto const* contract = dynamic_cast<ContractDefinition const*>(parentIdentifier->annotation().referencedDeclaration))
+		{
+			auto contractVariables = contract->stateVariables();
+			auto variable = ranges::find_if(
+				contractVariables,
+				[&](VariableDeclaration const* _variable) { return _variable->name() == _memberAcess.memberName(); }
+			);
+
+			if (
+				variable != ranges::end(contractVariables) &&
+				(*variable)->isConstant()
+			)
+				m_values[&_memberAcess] = evaluate(**variable);
+		}
+	}
 }

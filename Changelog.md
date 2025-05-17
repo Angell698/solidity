@@ -4,6 +4,7 @@ Language Features:
 
 
 Compiler Features:
+ * Constant Evaluator: Support for constants referenced by member access expression.
 
 
 Bugfixes:
