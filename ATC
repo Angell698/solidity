@@ -1,0 +1,77 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MyCustomToken {
+    string public name = "MyCustomToken";
+    string public symbol = "MCT";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+    uint256 public initialSupply = 1000000 * 10 ** uint256(decimals); // 1,000,000 tokens with 18 decimals
+    uint256 public emissionAmount = 500000 * 10 ** uint256(decimals); // 500,000 tokens with 18 decimals
+    uint256 public emissionInterval = 4 years; // 4 years in seconds
+    uint256 public lastEmissionTime;
+    uint256 public maxSupply = 5000000 * 10 ** uint256(decimals); // 5,000,000 tokens with 18 decimals
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor() {
+        totalSupply = initialSupply;
+        balanceOf[msg.sender] = initialSupply;
+        lastEmissionTime = block.timestamp;
+    }
+
+    function _transfer(address sender, address recipient, uint256 amount) internal {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        uint256 senderBalance = balanceOf[sender];
+        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+        unchecked {
+            balanceOf[sender] = senderBalance - amount;
+        }
+        balanceOf[recipient] += amount;
+
+        emit Transfer(sender, recipient, amount);
+    }
+
+    function transfer(address recipient, uint256 amount) public returns (bool) {
+        _transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) public returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
+        uint256 senderBalance = balanceOf[sender];
+        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+        uint256 spenderAllowance = allowance[sender][msg.sender];
+        require(spenderAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        unchecked {
+            senderBalance = senderBalance - amount;
+            balanceOf[sender] = senderBalance;
+            allowance[sender][msg.sender] = spenderAllowance - amount;
+        }
+        _transfer(sender, recipient, amount);
+        return true;
+    }
+
+    function emitNewTokens() public {
+        require(block.timestamp >= lastEmissionTime + emissionInterval, "Emisión aún no disponible");
+        require(totalSupply + emissionAmount <= maxSupply, "Límite máximo de emisión alcanzado");
+
+        totalSupply += emissionAmount;
+        balanceOf[msg.sender] += emissionAmount;
+
+        lastEmissionTime = block.timestamp;
+
+        emit Transfer(address(0), msg.sender, emissionAmount);
+    }
+}
